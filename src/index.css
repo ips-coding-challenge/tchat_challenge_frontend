@@ -1,0 +1,81 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap");
+/* purgecss start ignore */
+@tailwind base;
+
+@tailwind components;
+html {
+  font-family: "Noto sans", sans-serif;
+}
+body {
+  @apply bg-mBg;
+}
+
+.social-icons {
+  @apply m-2 cursor-pointer transition-all duration-300;
+}
+
+.social-icons:hover circle {
+  stroke: white;
+}
+.social-icons:hover path {
+  fill: white;
+}
+.lds-dual-ring {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+}
+.lds-dual-ring:after {
+  content: " ";
+  display: block;
+  width: 24px;
+  height: 24px;
+  margin: 8px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  border-color: #fff transparent #fff transparent;
+  animation: lds-dual-ring 1.2s linear infinite;
+}
+@keyframes lds-dual-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+/* Sidebar */
+@media (max-width: 1023px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.4s ease-in-out;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+}
+
+/* Custom scrollbar */
+/* width */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #252329;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #f1f1f1;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* purgecss end ignore */
+
+@tailwind utilities;
