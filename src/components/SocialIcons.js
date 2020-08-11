@@ -77,7 +77,10 @@ const SocialIcons = ({ onClick }) => {
           </defs>
         </svg>
       </div>
-      <a href={process.env.REACT_APP_API_URL} className="social-icons">
+      <a
+        href="https://tchat-challenge.herokuapp.com/oauth/github"
+        className="social-icons"
+      >
         <svg
           width="43"
           height="43"
