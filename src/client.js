@@ -1,7 +1,7 @@
 import io from "socket.io-client";
 import feathers from "@feathersjs/client";
 
-const socket = io("https://tchat-challenge.herokuapp.com");
+const socket = io(process.env.REACT_APP_SOCKET_URL);
 const client = feathers();
 
 client.configure(feathers.socketio(socket));
