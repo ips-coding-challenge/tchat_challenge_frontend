@@ -8,6 +8,8 @@ import React, {
 import Message from "./Message";
 import client from "../../client";
 import { store } from "../../store/store";
+import { format } from "date-fns";
+import { useReducer } from "react";
 
 const Content = () => {
   const {
@@ -15,7 +17,47 @@ const Content = () => {
   } = useContext(store);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([]);
+  const [state, dispatch] = useReducer(
+    (state, action) => {
+      switch (action.type) {
+        case "SET_MESSAGES":
+          return { ...state, messages: action.payload };
+        case "ADD_MESSAGE": {
+          const formattedDate = format(
+            new Date(action.payload.createdAt),
+            "Y-MM-d"
+          );
+
+          // Check if there are messages for that date
+          const index = state.messages.findIndex(
+            (m) => m._id.date === formattedDate
+          );
+
+          // If there are no messages for that date i just create a new "dategroup" with the message
+          if (index === -1) {
+            const newBlock = {
+              _id: {
+                date: formattedDate,
+              },
+              messages: [action.payload],
+            };
+            const newMessages = state.messages.concat(newBlock);
+            return { ...state, messages: newMessages };
+          } else {
+            state.messages[index] = {
+              _id: state.messages[index]._id,
+              messages: state.messages[index].messages.concat(action.payload),
+            };
+            return { ...state };
+          }
+        }
+        default:
+          return state;
+      }
+    },
+    { messages: [] }
+  );
+  // const [messages, setMessages] = useState([]);
   const messagesContainerRef = useRef(null);
 
   const sendMessage = async () => {
@@ -33,22 +75,24 @@ const Content = () => {
   // Fetch the messages
   const fetchMessages = useCallback(async () => {
     try {
-      const messages = await client
-        .service("channels")
-        .get(currentChannel._id.toString());
-      setMessages(messages.messages.data);
-      if (messages.messages.data.length > 0) {
-        setTimeout(() => {
-          scrollToBottom();
-        }, 50);
-      }
+      const messages = await client.service("messages").find({
+        query: {
+          channelId: currentChannel._id.toString(),
+        },
+      });
+      console.log(`Messages`, messages);
+      // Date in messages[index]._id
+      // messages in messages[index].messages
+      // setMessages(() => messages);
+      dispatch({ type: "SET_MESSAGES", payload: messages });
+      setTimeout(() => {
+        scrollToBottom();
+      }, 200);
     } catch (e) {
       console.log(`E`, e);
     } finally {
       setLoading(false);
     }
-
-    // console.log(`Messages`, messages);
   }, [currentChannel]);
 
   // Fetch the messages when the component is mounted
@@ -60,8 +104,7 @@ const Content = () => {
     // Add the listener
     client.service("messages").on("created", (message) => {
       if (message.channelId === currentChannel._id) {
-        console.log(`Message received`, message);
-        setMessages((messages) => messages.concat(message));
+        dispatch({ type: "ADD_MESSAGE", payload: message });
         scrollToBottom();
       }
     });
@@ -73,14 +116,25 @@ const Content = () => {
 
   // Scroll To bottom
   const scrollToBottom = () => {
-    messagesContainerRef.current.scrollIntoView();
+    if (messagesContainerRef && messagesContainerRef.current) {
+      messagesContainerRef.current.scrollIntoView();
+    }
   };
 
   const showNavbar = () => {
     document.querySelector(".sidebar").classList.add("open");
   };
 
-  if (loading) return <div className="lds-dual-ring"></div>;
+  const formattedDate = (date) => {
+    return format(new Date(date), "MMMM d, Y");
+  };
+
+  if (loading)
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="lds-dual-ring"></div>
+      </div>
+    );
 
   return (
     <div className="flex flex-col bg-chatBg w-full overflow-hidden">
@@ -104,13 +158,34 @@ const Content = () => {
       </header>
       <div className="container mx-auto px-4 lg:px-10 h-auto flex-auto overflow-y-auto">
         {/* <div className="h-full"> */}
-        {messages.length > 0 && (
+        {state.messages.length > 0 && (
           <>
-            <ul className="h-auto">
-              {messages.map((m) => (
-                <Message key={m._id} message={m} />
-              ))}
-            </ul>
+            {state.messages.map((block) => {
+              return (
+                <ul key={block._id.date} className="h-auto">
+                  <h3
+                    style={{
+                      lineHeight: "0.1em",
+                      margin: "10px 0 20px",
+                      borderColor: "#ffffff1f",
+                    }}
+                    className="w-full border-b text-center border-opacity-25"
+                  >
+                    <span
+                      style={{ padding: "0 10px" }}
+                      className="bg-chatBg
+                    "
+                    >
+                      {formattedDate(block._id.date)}
+                    </span>
+                  </h3>
+                  {block.messages.map((m) => (
+                    <Message key={m._id} message={m} />
+                  ))}
+                </ul>
+              );
+            })}
+
             <div ref={messagesContainerRef}></div>
           </>
         )}

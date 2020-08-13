@@ -26,8 +26,6 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: -1px -5px 8px 0 rgb(45 156 219 / 24%),
-    0 6px 20px 0 rgb(45 156 219 / 22%);
   -webkit-animation-name: animatetop;
   -webkit-animation-duration: 0.4s;
   animation-name: slide-in;

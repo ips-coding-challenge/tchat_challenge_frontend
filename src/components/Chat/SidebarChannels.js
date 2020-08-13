@@ -87,7 +87,9 @@ const SidebarChannels = () => {
                 return (
                   <li
                     onClick={(e) => changeChannel(channel)}
-                    className="group flex items-center mb-8 cursor-pointer"
+                    className={`group p-2 flex items-center mb-8 cursor-pointer rounded hover:bg-chatBg transition-colors duration-300 ${
+                      currentChannel === channel ? "bg-chatBg" : ""
+                    }`}
                     key={channel._id}
                   >
                     <span className="flex items-center justify-center uppercase h-8 min-w-8 rounded bg-mBlue text-white font-bold mr-4 ">
