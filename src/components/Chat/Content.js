@@ -16,6 +16,7 @@ const Content = () => {
     state: { currentChannel },
   } = useContext(store);
   const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
   const [message, setMessage] = useState("");
   const [state, dispatch] = useReducer(
     (state, action) => {
@@ -61,6 +62,7 @@ const Content = () => {
   const messagesContainerRef = useRef(null);
 
   const sendMessage = async () => {
+    setSending(true);
     try {
       await client.service("messages").create({
         content: message,
@@ -69,6 +71,8 @@ const Content = () => {
       setMessage("");
     } catch (e) {
       console.log(`E`, e);
+    } finally {
+      setSending(false);
     }
   };
 
@@ -204,7 +208,11 @@ const Content = () => {
               e.key === "Enter" ? sendMessage(message) : null
             }
           />
-          <button className="flex items-center justify-center bg-mBlue px-2 py-2 rounded">
+          <button
+            onClick={sendMessage}
+            className="flex items-center justify-center bg-mBlue px-2 py-2 rounded"
+            disabled={sending}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
