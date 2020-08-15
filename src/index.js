@@ -6,6 +6,10 @@ import * as serviceWorker from "./serviceWorker";
 import { StateProvider } from "./store/store.js";
 import { SnackbarProvider } from "notistack";
 
+if (process.env.NODE_ENV !== "development") {
+  console.log = () => {};
+}
+
 ReactDOM.render(
   <StateProvider>
     <SnackbarProvider

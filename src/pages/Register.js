@@ -46,8 +46,8 @@ const Login = () => {
     } catch (e) {
       console.log(`Error`, e);
       setLoading(false);
-      if (e.errors.hasOwnProperty("email")) {
-        const serverError = { ...e.errors, email: e.errors.message };
+      if (e == "Error: Email is already taken") {
+        const serverError = { email: "Email is already taken" };
         console.log(`serverError`, serverError);
         setServerErrors({
           ...e.errors,
