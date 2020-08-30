@@ -82,6 +82,9 @@ const Content = () => {
       const messages = await client.service("messages").find({
         query: {
           channelId: currentChannel._id.toString(),
+          $sort: {
+            createdAt: -1,
+          },
         },
       });
       console.log(`Messages`, messages);
