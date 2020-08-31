@@ -15,7 +15,9 @@ const Message = ({ message }) => {
             {formatDate(message.createdAt)}
           </span>
         </div>
-        <div className="text-mWhite font-normal text-sm">{message.content}</div>
+        <div className="text-mWhite font-normal text-sm break-all">
+          {message.content}
+        </div>
       </div>
     </div>
   );
