@@ -1,13 +1,19 @@
-@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap');
 /* purgecss start ignore */
 @tailwind base;
 
 @tailwind components;
 html {
-  font-family: "Noto sans", sans-serif;
+  font-family: 'Noto sans', sans-serif;
 }
 body {
   @apply bg-mBg;
+}
+a {
+  @apply text-blue-500;
+}
+a:hover {
+  @apply text-blue-700;
 }
 
 .social-icons {
@@ -26,7 +32,7 @@ body {
   height: 24px;
 }
 .lds-dual-ring:after {
-  content: " ";
+  content: ' ';
   display: block;
   width: 24px;
   height: 24px;

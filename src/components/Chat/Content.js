@@ -4,35 +4,72 @@ import React, {
   useEffect,
   useRef,
   useContext,
-} from "react";
-import Message from "./Message";
-import client from "../../client";
-import { store } from "../../store/store";
-import { format } from "date-fns";
-import { useReducer } from "react";
+} from 'react'
+import Message from './Message'
+import client from '../../client'
+import { store } from '../../store/store'
+import { format } from 'date-fns'
+import { useReducer } from 'react'
+import {
+  createBotResponse,
+  isCommand,
+  createFrontOnlyMessage,
+} from '../../utils/botCommands'
 
 const Content = () => {
   const {
-    state: { currentChannel },
-  } = useContext(store);
-  const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState(false);
-  const [message, setMessage] = useState("");
+    state: { currentChannel, user },
+  } = useContext(store)
+  const [loading, setLoading] = useState(true)
+  const [sending, setSending] = useState(false)
+  const [message, setMessage] = useState('')
+
+  // Bot command
+  const detectCommand = (message) => {
+    const botMessage = createBotResponse(message)
+    if (botMessage) {
+      return {
+        ...message,
+        _id: `bot_${message._id}`,
+        content: botMessage,
+        user: {
+          avatar: 'https://www.freeiconspng.com/uploads/robot-icon-29.png',
+          email: '',
+          name: 'TheBot',
+          _id: 'bot',
+        },
+      }
+    } else {
+      return null
+    }
+  }
   const [state, dispatch] = useReducer(
     (state, action) => {
       switch (action.type) {
-        case "SET_MESSAGES":
-          return { ...state, messages: action.payload };
-        case "ADD_MESSAGE": {
+        case 'SET_MESSAGES':
+          return { ...state, messages: action.payload }
+        case 'ADD_MESSAGE': {
           const formattedDate = format(
             new Date(action.payload.createdAt),
-            "Y-MM-d"
-          );
+            'Y-MM-d'
+          )
+
+          console.log('action.payload', action.payload)
 
           // Check if there are messages for that date
           const index = state.messages.findIndex(
             (m) => m._id.date === formattedDate
-          );
+          )
+
+          let messageToAdd = [action.payload]
+
+          if (detectCommand(action.payload) !== null) {
+            console.log('in here')
+
+            console.log(detectCommand(action.payload))
+            messageToAdd.push(detectCommand(action.payload))
+          }
+          console.log('messageToAdd', messageToAdd)
 
           // If there are no messages for that date i just create a new "dategroup" with the message
           if (index === -1) {
@@ -40,108 +77,119 @@ const Content = () => {
               _id: {
                 date: formattedDate,
               },
-              messages: [action.payload],
-            };
-            const newMessages = state.messages.concat(newBlock);
-            return { ...state, messages: newMessages };
+              messages: messageToAdd,
+            }
+            const newMessages = state.messages.concat(newBlock)
+            return { ...state, messages: newMessages }
           } else {
             state.messages[index] = {
               _id: state.messages[index]._id,
-              messages: state.messages[index].messages.concat(action.payload),
-            };
-            return { ...state };
+              messages: state.messages[index].messages.concat(messageToAdd),
+            }
+            return { ...state }
           }
         }
         default:
-          return state;
+          return state
       }
     },
     { messages: [] }
-  );
+  )
   // const [messages, setMessages] = useState([]);
-  const messagesContainerRef = useRef(null);
+  const messagesContainerRef = useRef(null)
 
   const sendMessage = async () => {
-    setSending(true);
+    if (isCommand(message)) {
+      dispatch({
+        type: 'ADD_MESSAGE',
+        payload: createFrontOnlyMessage(user, message, currentChannel),
+      })
+      setMessage('')
+      setTimeout(() => {
+        scrollToBottom()
+      }, 200)
+      return
+    }
+    setSending(true)
     try {
-      await client.service("messages").create({
+      await client.service('messages').create({
         content: message,
         channelId: currentChannel._id,
-      });
-      setMessage("");
+      })
+      setMessage('')
     } catch (e) {
-      console.log(`E`, e);
+      console.log(`E`, e)
     } finally {
-      setSending(false);
+      setSending(false)
     }
-  };
+  }
 
   // Fetch the messages
   const fetchMessages = useCallback(async () => {
     try {
-      const messages = await client.service("messages").find({
+      const messages = await client.service('messages').find({
         query: {
           channelId: currentChannel._id.toString(),
           $sort: {
             createdAt: -1,
           },
         },
-      });
-      console.log(`Messages`, messages);
+      })
+      console.log(`Messages`, messages)
       // Date in messages[index]._id
       // messages in messages[index].messages
       // setMessages(() => messages);
-      dispatch({ type: "SET_MESSAGES", payload: messages });
+      dispatch({ type: 'SET_MESSAGES', payload: messages })
       setTimeout(() => {
-        scrollToBottom();
-      }, 200);
+        scrollToBottom()
+      }, 200)
     } catch (e) {
-      console.log(`E`, e);
+      console.log(`E`, e)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [currentChannel]);
+  }, [currentChannel])
 
   // Fetch the messages when the component is mounted
   // Listen to new messages
   useEffect(() => {
     if (currentChannel) {
-      fetchMessages();
+      fetchMessages()
     }
     // Add the listener
-    client.service("messages").on("created", (message) => {
+    client.service('messages').on('created', (message) => {
       if (message.channelId === currentChannel._id) {
-        dispatch({ type: "ADD_MESSAGE", payload: message });
-        scrollToBottom();
+        dispatch({ type: 'ADD_MESSAGE', payload: message })
+        scrollToBottom()
       }
-    });
+    })
 
     return () => {
-      client.service("messages").removeListener("created");
-    };
-  }, [currentChannel]);
+      client.service('messages').removeListener('created')
+    }
+  }, [currentChannel])
 
   // Scroll To bottom
   const scrollToBottom = () => {
     if (messagesContainerRef && messagesContainerRef.current) {
-      messagesContainerRef.current.scrollIntoView();
+      messagesContainerRef.current.scrollIntoView()
     }
-  };
+  }
 
   const showNavbar = () => {
-    document.querySelector(".sidebar").classList.add("open");
-  };
+    document.querySelector('.sidebar').classList.add('open')
+  }
 
   const formattedDate = (date) => {
-    return format(new Date(date), "MMMM d, Y");
-  };
+    return format(new Date(date), 'MMMM d, Y')
+  }
 
   if (loading)
     return (
       <div className="w-full h-full flex items-center justify-center">
         <div className="lds-dual-ring"></div>
       </div>
-    );
+    )
 
   return (
     <div className="flex flex-col bg-chatBg w-full overflow-hidden">
@@ -172,14 +220,14 @@ const Content = () => {
                 <ul key={block._id.date} className="h-auto">
                   <h3
                     style={{
-                      lineHeight: "0.1em",
-                      margin: "10px 0 20px",
-                      borderColor: "#ffffff1f",
+                      lineHeight: '0.1em',
+                      margin: '10px 0 20px',
+                      borderColor: '#ffffff1f',
                     }}
                     className="w-full border-b text-center border-opacity-25"
                   >
                     <span
-                      style={{ padding: "0 10px" }}
+                      style={{ padding: '0 10px' }}
                       className="bg-chatBg
                     "
                     >
@@ -190,7 +238,7 @@ const Content = () => {
                     <Message key={m._id} message={m} />
                   ))}
                 </ul>
-              );
+              )
             })}
 
             <div ref={messagesContainerRef}></div>
@@ -208,7 +256,7 @@ const Content = () => {
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type a message here..."
             onKeyPress={(e) =>
-              e.key === "Enter" ? sendMessage(message) : null
+              e.key === 'Enter' ? sendMessage(message) : null
             }
           />
           <button
@@ -230,7 +278,7 @@ const Content = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Content;
+export default Content
