@@ -8,7 +8,7 @@ const commandsAvailable = [
   {
     key: 'github',
     message: `BACKEND: <a href="https://github.com/ips-coding-challenge/tchat_challenge_backend" target="_blank" rel="noopener, noreferrer">Backend repository</a><br>
-    FRONTEND: <a href="https://github.com/ips-coding-challenge/tchat_challenge_frontend" target="_blank" rel="noopener, noreferrer">Backend repository</a>`,
+    FRONTEND: <a href="https://github.com/ips-coding-challenge/tchat_challenge_frontend" target="_blank" rel="noopener, noreferrer">Frontend repository</a>`,
   },
 ]
 
