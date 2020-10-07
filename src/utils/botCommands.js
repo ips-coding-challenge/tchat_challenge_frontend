@@ -3,7 +3,7 @@ import { formatISO } from 'date-fns'
 const commandsAvailable = [
   {
     key: 'help',
-    message: 'Commands available: !help, !joke',
+    message: 'Commands available: !help, !github',
   },
   {
     key: 'github',
